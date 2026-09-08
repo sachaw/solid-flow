@@ -11,3 +11,6 @@ tmp
 # playwright
 test-results/
 playwright-report/
+
+# We build this fork with npm (upstream uses bun); keep the delta upstreamable.
+package-lock.json

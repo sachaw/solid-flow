@@ -360,7 +360,11 @@ export const MiniMap = <NodeType extends Node>(
                             color={nodeColorFunc()?.call(null, userNode())}
                             strokeColor={nodeStrokeColorFunc().call(null, userNode())}
                             class={nodeClassFunc().call(null, userNode())}
-                            style={node().style}
+                            /* Spread, so the renderer's style binding gets a
+                               plain object rather than a store proxy -- see the
+                               note in EdgeWrapper. A JSX attribute IS a tracking
+                               scope, so this reads every key tracked. */
+                            style={{ ...node().style }}
                             onClick={_props.onNodeClick ? onSvgNodeClick : undefined}
                           />
                         );

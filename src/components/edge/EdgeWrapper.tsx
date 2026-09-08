@@ -27,6 +27,26 @@ export const EdgeWrapper = <NodeType extends Node = Node, EdgeType extends Edge 
   const edge = () => actions.getLayoutedEdge(edgeId())!;
 
   const edgeType = () => edge().type ?? "default";
+
+  /*
+   * Style objects have to reach the DOM as PLAIN objects, not store proxies.
+   *
+   * The renderer's `style` binding walks the object's keys inside its effect's
+   * APPLY phase, which is untracked. Handed a store proxy it therefore reads
+   * every property untracked: dev logs STRICT_READ_UNTRACKED once per key, and
+   * -- the real cost -- changing a single style property never re-applies,
+   * because nothing subscribed to it. Spreading inside a memo reads every key
+   * in a tracking scope, so any property change produces a fresh plain object
+   * and the binding runs again.
+   */
+  const edgeStyle = createMemo(() => {
+    const s = edge().style;
+    return s ? { ...s } : undefined;
+  });
+  const edgeLabelStyle = createMemo(() => {
+    const s = edge().labelStyle;
+    return s ? { ...s } : undefined;
+  });
   const selectable = () => isEdgeSelectable(edge(), store);
   const focusable = () => edge().focusable ?? store.edgesFocusable;
 
@@ -149,9 +169,9 @@ export const EdgeWrapper = <NodeType extends Node = Node, EdgeType extends Edge 
               animated={edge().animated}
               selected={edge().selected}
               label={edge().label}
-              labelStyle={edge().labelStyle}
+              labelStyle={edgeLabelStyle()}
               data={edge().data}
-              style={edge().style}
+              style={edgeStyle()}
               interactionWidth={edge().interactionWidth}
               selectable={selectable()}
               deletable={edge().deletable ?? true}
