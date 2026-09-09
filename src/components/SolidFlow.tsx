@@ -7,6 +7,7 @@ import {
   merge,
   omit,
   onSettled,
+  runWithOwner,
   type ParentProps,
   untrack,
   useContext,
@@ -73,7 +74,19 @@ export const SolidFlow = <NodeType extends Node = Node, EdgeType extends Edge = 
     actions.setDomNode(domNode);
 
     return () => {
-      actions.reset();
+      /*
+       * Detached from the owner on purpose.
+       *
+       * This runs inside a disposal walk, which is an owned scope, and the
+       * reset writes both signals and the viewport STORE. Solid's owned-write
+       * guard throws there -- and an uncaught throw inside disposal is not
+       * contained, it halts the whole reactive system, so every other pane in
+       * the host application stops updating. `ownedWrite` would cover the
+       * signals but `createStore` has no such option, so the owner is dropped
+       * for the call instead. Synchronous, so a remount cannot be clobbered by
+       * a deferred reset.
+       */
+      runWithOwner(null, () => actions.reset());
     };
   });
 
