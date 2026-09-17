@@ -32,6 +32,9 @@ type ViewportStoreReads = {
   readonly translateExtent: CoordinateExtent;
 };
 
+/** How many frames a fit waits for the canvas and its nodes to be measured. */
+const FIT_WAIT_FRAMES = 30;
+
 export type ViewportCommandDeps<NodeType extends Node> = {
   readonly store: ViewportStoreReads;
   readonly nodeLookup: NodeLookup<InternalNode<NodeType>>;
@@ -50,6 +53,24 @@ export const createViewportCommands = <NodeType extends Node, EdgeType extends E
   defaultFitViewOptions,
 }: ViewportCommandDeps<NodeType>) => {
   const fitView = async (options?: FitViewOptions<NodeType>) => {
+    if (!store.panZoom) return false;
+    // Nothing to fit until the canvas has a size and at least one node has
+    // been measured. A fit before then takes the bounds of nothing, and the
+    // NaN it computes becomes the viewport — every consumer of the transform
+    // (the background pattern first) renders NaN until the next move. So a
+    // fit asked for too early waits for measurement, a few frames at most,
+    // rather than computing garbage or being lost.
+    const ready = () => {
+      if (!store.width || !store.height || nodeLookup.size === 0) return false;
+      for (const node of nodeLookup.values()) {
+        if (node.measured?.width && node.measured?.height) return true;
+      }
+      return false;
+    };
+    for (let frame = 0; !ready(); frame++) {
+      if (frame >= FIT_WAIT_FRAMES || typeof requestAnimationFrame === "undefined") return false;
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
     if (!store.panZoom) return false;
 
     const result = await fitViewport(
