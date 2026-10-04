@@ -1,4 +1,4 @@
-import { Dynamic, Portal, addEvent, claimElement, className, createComponent, delegateEvents, effect, insert, isServer, memo, mergeProps, ref, setAttribute, setStyleProperty, spread, style, template } from "@solidjs/web";
+import { Dynamic, Portal, addEvent, claimElement, className, createComponent, delegateEvents, effect, insert, isServer, memo, mergeProps, readShallow, ref, setAttribute, setStyleProperty, spread, style, template } from "@solidjs/web";
 import { ConnectionLineType as ConnectionLineType$1, ConnectionMode as ConnectionMode$1, MarkerType as MarkerType$1, PanOnScrollMode as PanOnScrollMode$1, Position as Position$1, ResizeControlVariant as ResizeControlVariant$1, SelectionMode as SelectionMode$1, XYDrag, XYHandle, XYMinimap, XYPanZoom, XYResizer, XY_RESIZER_HANDLE_POSITIONS, XY_RESIZER_LINE_POSITIONS, addEdge, addEdge as addEdge$1, areConnectionMapsEqual, calcAutoPan, calculateNodePosition, clampPosition, clampPositionToParent, createDevWarn, createMarkerIds, elementSelectionKeys, errorMessages, evaluateAbsolutePosition, fitViewport, getBezierEdgeCenter as getBezierEdgeCenter$1, getBezierPath, getBezierPath as getBezierPath$1, getBoundsOfRects, getConnectedEdges, getConnectionStatus, getDimensions, getEdgeCenter as getEdgeCenter$1, getEdgePosition, getEdgeToolbarTransform, getElementsToRemove, getElevatedEdgeZIndex, getEventPosition, getHandleBounds, getHostForElement, getIncomers, getInternalNodesBounds, getMarkerId, getNodeDimensions, getNodePositionWithOrigin, getNodeToolbarTransform, getNodesBounds, getNodesBounds as getNodesBounds$1, getNodesInside, getOutgoers, getOverlappingArea, getSmoothStepPath, getSmoothStepPath as getSmoothStepPath$1, getStraightPath, getStraightPath as getStraightPath$1, getViewportForBounds, getViewportForBounds as getViewportForBounds$1, handleConnectionChange, infiniteExtent, initialConnection, isCoordinateExtent, isEdgeBase, isInputDOMNode, isMacOs, isNodeBase, isNumeric, isRectObject, mergeAriaLabelConfig, nodeHasDimensions, nodeToRect, panBy, pointToRendererPoint, rendererPointToPoint, shallowNodeData, snapPosition } from "@xyflow/system";
 import { For, Show, createContext, createEffect, createMemo, createOptimisticStore, createProjection, createSignal, createStore, flush, isPending, mapArray, merge, omit, onCleanup, onSettled, runWithOwner, snapshot, untrack, useContext } from "solid-js";
 import { createMediaQuery } from "@solid-primitives/media";
@@ -97,7 +97,7 @@ const EdgeLabel = (props) => {
 	}), rest = omit(_props, "x", "y", "width", "height", "selectEdgeOnClick", "transparent", "children", "class", "style"), { actions } = useInternalSolidFlow(), id = useEdgeId(), zIndex = () => actions.getLayoutedEdge(id())?.zIndex;
 	return createComponent(EdgeLabelRenderer, { get children() {
 		var _el$ = _tmpl$$35();
-		return spread(_el$, mergeProps({
+		return spread(_el$, [{
 			role: "button",
 			tabindex: -1,
 			get class() {
@@ -121,7 +121,7 @@ const EdgeLabel = (props) => {
 			onClick: () => {
 				_props.selectEdgeOnClick && actions.handleEdgeSelection(id());
 			}
-		}, rest), !0), insert(_el$, () => _props.children), _el$;
+		}, rest], !0), insert(_el$, () => _props.children), _el$;
 	} });
 };
 //#endregion
@@ -133,7 +133,7 @@ const BaseEdge = (props) => {
 	return [
 		(() => {
 			var _el$ = _tmpl$$34();
-			return spread(_el$, mergeProps({
+			return spread(_el$, [{
 				get d() {
 					return _props.path;
 				},
@@ -150,7 +150,7 @@ const BaseEdge = (props) => {
 				get style() {
 					return _props.style;
 				}
-			}, rest), !1), _el$;
+			}, rest], !1), _el$;
 		})(),
 		createComponent(Show, {
 			get when() {
@@ -548,7 +548,7 @@ const EdgeReconnectAnchor = (props) => {
 		}
 	}, rest, { get children() {
 		var _el$ = _tmpl$$33();
-		return _el$.$$pointerdown = onPointerDown, insert(_el$, createComponent(Show, {
+		return _el$._$$pointerdown = onPointerDown, insert(_el$, createComponent(Show, {
 			get when() {
 				return !isReconnecting();
 			},
@@ -556,12 +556,12 @@ const EdgeReconnectAnchor = (props) => {
 				return _props.children;
 			}
 		})), effect(() => ({
-			e: [
+			e: readShallow([
 				"solid-flow__edgeupdater",
 				`solid-flow__edgeupdater-${_props.type}`,
 				store.noPanClass,
 				_props.class
-			],
+			]),
 			t: {
 				width: toPxString(_props.size),
 				height: toPxString(_props.size),
@@ -2132,9 +2132,7 @@ const EdgeWrapper = (props) => {
 				},
 				get children() {
 					var _el$ = _tmpl$$31(), _el$2 = _el$.firstChild;
-					return ref(() => (el) => {
-						edgeRef = el, setEdgeEl(el);
-					}, _el$2), spread(_el$2, mergeProps({
+					return spread(_el$2, [{
 						get "data-id"() {
 							return edge().id;
 						},
@@ -2169,7 +2167,9 @@ const EdgeWrapper = (props) => {
 						onPointerEnter,
 						onPointerLeave,
 						onPointerMove
-					}, () => edge().domAttributes), !0), insert(_el$2, createComponent(Dynamic, {
+					}, () => edge().domAttributes], !0), ref(() => (el) => {
+						edgeRef = el, setEdgeEl(el);
+					}, _el$2), insert(_el$2, createComponent(Dynamic, {
 						get component() {
 							return edgeComponent();
 						},
@@ -2622,7 +2622,7 @@ const Handle = (props) => {
 		delete connectionClone.inProgress, connectionClone.toPosition = connectionClone.toHandle ? connectionClone.toHandle.position : null, store.onClickConnectEnd?.(event, connectionClone), actions.setClickConnectStartHandle(void 0);
 	};
 	var _el$ = _tmpl$$30();
-	return spread(_el$, mergeProps(rest, {
+	return spread(_el$, [rest, {
 		role: "button",
 		get "aria-label"() {
 			return store.ariaLabelConfig["handle.ariaLabel"];
@@ -2667,7 +2667,7 @@ const Handle = (props) => {
 				}
 			];
 		}
-	}), !0), insert(_el$, () => _props.children), _el$;
+	}], !0), insert(_el$, () => _props.children), _el$;
 };
 //#endregion
 //#region src/components/handle/StaticHandle.tsx
@@ -2695,7 +2695,7 @@ const StaticHandle = (props) => {
 		t: nodeId(),
 		a: props.position,
 		o: props.title,
-		i: props.style,
+		i: readShallow(props.style),
 		n: `solid-flow__handle solid-flow__handle-${props.position} ${props.type}`
 	}), ({ e, t, a, o, i, n }, _p$) => {
 		e !== _p$?.e && setAttribute(_el$, "data-handleid", e), t !== _p$?.t && setAttribute(_el$, "data-nodeid", t), a !== _p$?.a && setAttribute(_el$, "data-handlepos", a), o !== _p$?.o && setAttribute(_el$, "title", o), style(_el$, i, _p$?.i), className(_el$, n, _p$?.n);
@@ -2924,7 +2924,7 @@ const NodeWrapper = (props) => {
 		},
 		get children() {
 			var _el$ = _tmpl$$27();
-			return ref(() => setNodeRef, _el$), spread(_el$, mergeProps({
+			return spread(_el$, [{
 				get "data-id"() {
 					return node().id;
 				},
@@ -2976,7 +2976,7 @@ const NodeWrapper = (props) => {
 				get "aria-describedby"() {
 					return store.disableKeyboardA11y ? void 0 : `${ARIA_NODE_DESC_KEY}-${store.id}`;
 				}
-			}, () => node().domAttributes), !0), insert(_el$, createComponent(NodeIdContext, {
+			}, () => node().domAttributes], !0), ref(() => setNodeRef, _el$), insert(_el$, createComponent(NodeIdContext, {
 				value: nodeId,
 				get children() {
 					return createComponent(NodeConnectableContext, {
@@ -3288,8 +3288,8 @@ const ConnectionLine = (props) => {
 			})), effect(() => ({
 				e: store.width,
 				t: store.height,
-				a: props.containerStyle,
-				o: ["solid-flow__connection", connectionStatus()]
+				a: readShallow(props.containerStyle),
+				o: readShallow(["solid-flow__connection", connectionStatus()])
 			}), ({ e, t, a, o }, _p$) => {
 				e !== _p$?.e && setAttribute(_el$, "width", e), t !== _p$?.t && setAttribute(_el$, "height", t), style(_el$, a, _p$?.a), className(_el$2, o, _p$?.o);
 			}), _el$;
@@ -3326,7 +3326,7 @@ const ConnectionLine = (props) => {
 	};
 	var _el$3 = _tmpl$2$2();
 	return effect(() => ({
-		e: props.style,
+		e: readShallow(props.style),
 		t: path()
 	}), ({ e, t }, _p$) => {
 		style(_el$3, e, _p$?.e), t !== _p$?.t && setAttribute(_el$3, "d", t);
@@ -3668,9 +3668,9 @@ const isSetEqual = (a, b) => {
 		props.onPaneContextMenu?.({ event });
 	};
 	var _el$ = _tmpl$$21();
-	return _el$.$$contextmenu = onContextMenu, _el$.addEventListener("pointercancel", (e) => isSelectionEnabled() ? onPointerCancel(e) : void 0), _el$.$$pointerup = onPointerUp, _el$.$$pointermove = (e) => {
+	return _el$._$$contextmenu = onContextMenu, _el$.addEventListener("pointercancel", (e) => isSelectionEnabled() ? onPointerCancel(e) : void 0), _el$._$$pointerup = onPointerUp, _el$._$$pointermove = (e) => {
 		props.onPanePointerMove?.({ event: e }), isSelectionEnabled() && onPointerMove(e);
-	}, _el$.$$click = (e) => isSelectionEnabled() ? void 0 : onClick(e), _el$.addEventListener("pointerleave", (event) => props.onPanePointerLeave?.({ event })), _el$.addEventListener("pointerenter", (event) => props.onPanePointerEnter?.({ event })), _el$.addEventListener("wheel", (event) => props.onPaneScroll?.({ event })), ref(() => (el) => {
+	}, _el$._$$click = (e) => isSelectionEnabled() ? void 0 : onClick(e), _el$.addEventListener("pointerleave", (event) => props.onPanePointerLeave?.({ event })), _el$.addEventListener("pointerenter", (event) => props.onPanePointerEnter?.({ event })), _el$.addEventListener("wheel", (event) => props.onPaneScroll?.({ event })), ref(() => (el) => {
 		container = el, setContainerRef(el);
 	}, _el$), insert(_el$, () => props.children), effect(() => ({
 		e: !!isSelecting(),
@@ -3696,7 +3696,7 @@ const Panel = (props) => {
 		style: {}
 	}), rest = omit(_props, "class", "position", "style", "children");
 	var _el$ = _tmpl$$20();
-	return spread(_el$, mergeProps({
+	return spread(_el$, [{
 		get class() {
 			return [
 				"solid-flow__panel",
@@ -3710,7 +3710,7 @@ const Panel = (props) => {
 				..._props.style
 			};
 		}
-	}, rest), !0), insert(_el$, () => _props.children), _el$;
+	}, rest], !0), insert(_el$, () => _props.children), _el$;
 };
 //#endregion
 //#region src/components/container/Viewport.tsx
@@ -3818,7 +3818,7 @@ const Selection = (props) => {
 		},
 		get children() {
 			var _el$ = _tmpl$$17();
-			return effect(() => styles(), (_v$, _$p) => {
+			return effect(() => readShallow(styles()), (_v$, _$p) => {
 				style(_el$, _v$, _$p);
 			}), _el$;
 		}
@@ -3883,13 +3883,13 @@ const NodeSelection = (props) => {
 		},
 		get children() {
 			var _el$ = _tmpl$$16();
-			return addEvent(_el$, "keydown", store.disableKeyboardA11y ? void 0 : onKeyDown, !0), _el$.$$contextmenu = onContextMenu, _el$.$$click = onClick, ref(() => setRef, _el$), insert(_el$, createComponent(Selection, {
+			return addEvent(_el$, "keydown", store.disableKeyboardA11y ? void 0 : onKeyDown, !0), _el$._$$contextmenu = onContextMenu, _el$._$$click = onClick, ref(() => setRef, _el$), insert(_el$, createComponent(Selection, {
 				width: "100%",
 				height: "100%",
 				x: 0,
 				y: 0
 			})), effect(() => ({
-				e: ["solid-flow__selection-wrapper", store.noPanClass],
+				e: readShallow(["solid-flow__selection-wrapper", store.noPanClass]),
 				t: toPxString(bounds()?.width),
 				a: toPxString(bounds()?.height),
 				o: `translate(${bounds()?.x}px, ${bounds()?.y}px)`,
@@ -4115,9 +4115,7 @@ const SolidFlow = (props) => {
 		..._props.style
 	});
 	var _el$ = _tmpl$3();
-	return ref(() => (el) => {
-		domNode = el, setDomNodeRef(el);
-	}, _el$), spread(_el$, mergeProps({
+	return spread(_el$, [{
 		role: "application",
 		"data-testid": "solid-flow__wrapper",
 		get class() {
@@ -4144,7 +4142,9 @@ const SolidFlow = (props) => {
 				behavior: "auto"
 			});
 		}
-	}, htmlProps), !0), insert(_el$, createComponent(TypedSolidFlowContext, {
+	}, htmlProps], !0), ref(() => (el) => {
+		domNode = el, setDomNodeRef(el);
+	}, _el$), insert(_el$, createComponent(TypedSolidFlowContext, {
 		value: solidFlow,
 		get children() {
 			return [
@@ -4623,11 +4623,11 @@ const DotPattern = (props) => {
 	let _props = propDefaults(props, { radius: 5 });
 	var _el$ = _tmpl$$13();
 	return effect(() => ({
-		e: [
+		e: readShallow([
 			"solid-flow__background-pattern",
 			"dots",
 			_props.class
-		],
+		]),
 		t: _props.radius,
 		a: _props.radius,
 		o: _props.radius
@@ -4644,11 +4644,11 @@ const LinePattern = (props) => {
 	return effect(() => ({
 		e: _props.lineWidth,
 		t: `M${_props.dimensions[0] / 2} 0 V${_props.dimensions[1]} M0 ${_props.dimensions[1] / 2} H${_props.dimensions[0]}`,
-		a: [
+		a: readShallow([
 			"solid-flow__background-pattern",
 			_props.variant,
 			_props.class
-		]
+		])
 	}), ({ e, t, a }, _p$) => {
 		e !== _p$?.e && setAttribute(_el$, "stroke-width", e), t !== _p$?.t && setAttribute(_el$, "d", t), className(_el$, a, _p$?.a);
 	}), _el$;
@@ -4699,7 +4699,7 @@ const DEFAULT_SIZE = {
 			});
 		}
 	})), effect(() => ({
-		e: ["solid-flow__container solid-flow__background", _props.class],
+		e: readShallow(["solid-flow__container solid-flow__background", _props.class]),
 		t: {
 			"--xy-background-color-props": _props.bgColor,
 			"--xy-background-pattern-color-props": _props.patternColor,
@@ -4729,7 +4729,7 @@ const ControlButton = (props) => {
 		"--xy-controls-button-border-color-props": props.borderColor
 	}).filter(([_, value]) => value !== void 0).reduce((acc, [key, value]) => (acc[key] = value, acc), {});
 	var _el$ = _tmpl$$10();
-	return spread(_el$, mergeProps({
+	return spread(_el$, [{
 		type: "button",
 		get class() {
 			return ["solid-flow__controls-button", props.class];
@@ -4738,7 +4738,7 @@ const ControlButton = (props) => {
 		get style() {
 			return style();
 		}
-	}, rest), !0), insert(_el$, () => props.children), _el$;
+	}, rest], !0), insert(_el$, () => props.children), _el$;
 };
 //#endregion
 //#region src/plugins/controls/icons/Fit.tsx
@@ -4908,11 +4908,11 @@ const MiniMapNode = (props) => {
 	}).filter(([_, value]) => value !== void 0).reduce((acc, [key, value]) => (acc[key] = value, acc), {});
 	var _el$ = _tmpl$$4();
 	return addEvent(_el$, "click", _props.onClick ? (event) => _props.onClick(event, _props.id) : void 0, !0), effect(() => ({
-		e: [
+		e: readShallow([
 			"solid-flow__minimap-node",
 			{ selected: !!_props.selected },
 			_props.class
-		],
+		]),
 		t: _props.x,
 		a: _props.y,
 		o: _props.borderRadius,
@@ -4920,7 +4920,7 @@ const MiniMapNode = (props) => {
 		n: _props.width,
 		s: _props.height,
 		h: _props.shapeRendering,
-		r: style$1()
+		r: readShallow(style$1())
 	}), ({ e, t, a, o, i, n, s, h, r }, _p$) => {
 		className(_el$, e, _p$?.e), t !== _p$?.t && setAttribute(_el$, "x", t), a !== _p$?.a && setAttribute(_el$, "y", a), o !== _p$?.o && setAttribute(_el$, "rx", o), i !== _p$?.i && setAttribute(_el$, "ry", i), n !== _p$?.n && setAttribute(_el$, "width", n), s !== _p$?.s && setAttribute(_el$, "height", s), h !== _p$?.h && setAttribute(_el$, "shape-rendering", h), style(_el$, r, _p$?.r);
 	}), _el$;
@@ -5105,7 +5105,7 @@ const getAttrFunction = (value) => value instanceof Function ? value : () => val
 							}
 						});
 					}
-				}), _el$2.nextSibling), effect(() => ({
+				}), _el$3), effect(() => ({
 					e: _props.width,
 					t: _props.height,
 					a: `${getX()} ${getY()} ${getViewboxWidth()} ${getViewboxHeight()}`,
@@ -5196,7 +5196,7 @@ const ResizeControl = (props) => {
 		instance?.update(options);
 	});
 	var _el$ = _tmpl$$2();
-	return ref(() => setResizeControlRef, _el$), spread(_el$, mergeProps({
+	return spread(_el$, [{
 		get class() {
 			return [
 				"solid-flow__resize-control",
@@ -5214,7 +5214,7 @@ const ResizeControl = (props) => {
 				..._props.style
 			};
 		}
-	}, rest), !0), insert(_el$, () => _props.children), _el$;
+	}, rest], !0), ref(() => setResizeControlRef, _el$), insert(_el$, () => _props.children), _el$;
 }, NodeResizer = (props) => {
 	let _props = propDefaults(props, {
 		autoScale: !0,
@@ -5276,7 +5276,7 @@ const EdgeToolbar = (props) => {
 				transparent: !0,
 				get children() {
 					var _el$ = _tmpl$$1();
-					return spread(_el$, mergeProps({
+					return spread(_el$, [{
 						get class() {
 							return ["solid-flow__edge-toolbar", props.class];
 						},
@@ -5290,7 +5290,7 @@ const EdgeToolbar = (props) => {
 						get "data-id"() {
 							return edgeId();
 						}
-					}, rest), !0), insert(_el$, () => props.children), _el$;
+					}, rest], !0), insert(_el$, () => props.children), _el$;
 				}
 			});
 		}
@@ -5333,7 +5333,7 @@ const NodeToolbar = (props) => {
 				},
 				get children() {
 					var _el$ = _tmpl$();
-					return spread(_el$, mergeProps({
+					return spread(_el$, [{
 						class: "solid-flow__node-toolbar",
 						get "data-id"() {
 							return toolbarNodes().reduce((acc, node) => `${acc}${node.id} `, "").trim();
@@ -5346,7 +5346,7 @@ const NodeToolbar = (props) => {
 								..._props.style
 							};
 						}
-					}, divProps), !0), insert(_el$, () => _props.children), _el$;
+					}, divProps], !0), insert(_el$, () => _props.children), _el$;
 				}
 			});
 		}
