@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { Edge } from "@/types";
 
 import { connectionKey, createConnections } from "../projections/connections";
+import { external } from "./externalStore";
 
 describe("createConnections (core, headless)", () => {
   it("indexes every edge under node, node-type, and node-type-handle keys", () => {
@@ -40,7 +41,9 @@ describe("createConnections (core, headless)", () => {
   });
 
   it("only notifies subscribers whose key set actually changed", () => {
-    const [edges, setEdges] = createStore([{ id: "e1", source: "a", target: "b" }] as Edge[]);
+    const [edges, setEdges] = external(
+      createStore([{ id: "e1", source: "a", target: "b" }] as Edge[]),
+    );
     const runs = { a: 0, c: 0 };
 
     createRoot((dispose) => {
@@ -85,10 +88,12 @@ describe("createConnections (core, headless)", () => {
   });
 
   it("drops keys when their last connection is removed", () => {
-    const [edges, setEdges] = createStore([
-      { id: "e1", source: "a", target: "b" },
-      { id: "e2", source: "a", target: "c" },
-    ] as Edge[]);
+    const [edges, setEdges] = external(
+      createStore([
+        { id: "e1", source: "a", target: "b" },
+        { id: "e2", source: "a", target: "c" },
+      ] as Edge[]),
+    );
 
     createRoot((dispose) => {
       const connections = createConnections({

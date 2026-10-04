@@ -3,11 +3,12 @@ import { createEffect, createRoot, createStore, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
 import { RecordMapFacade } from "../facades";
+import { external } from "./externalStore";
 
 type Row = { id: string; value: number };
 
 const setup = (initial: Record<string, Row>) => {
-  const [record, setRecord] = createStore<Record<string, Row>>(initial);
+  const [record, setRecord] = external(createStore<Record<string, Row>>(initial));
   return { facade: new RecordMapFacade<Row>(record), setRecord };
 };
 

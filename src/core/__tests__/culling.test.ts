@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { InternalNode, Node } from "@/types";
 
 import { createCullingViewport, isEdgeCulled, isNodeCulled, rectsOverlap } from "../culling";
+import { external } from "./externalStore";
 
 const makeInternalNode = (
   overrides: {
@@ -46,11 +47,13 @@ const makeInternalNode = (
 // A 800x600 container at zoom 1 centered on the origin-anchored viewport:
 // culling rect spans [-400, 1200] x [-300, 900] (bucketed dims + 0.5 overscan).
 const makeSource = (initial: { width?: number; height?: number; transform?: Transform } = {}) => {
-  const [state, setState] = createStore({
-    width: initial.width ?? 800,
-    height: initial.height ?? 600,
-    transform: initial.transform ?? ([0, 0, 1] as Transform),
-  });
+  const [state, setState] = external(
+    createStore({
+      width: initial.width ?? 800,
+      height: initial.height ?? 600,
+      transform: initial.transform ?? ([0, 0, 1] as Transform),
+    }),
+  );
   return {
     setTransform: (transform: Transform) => {
       setState((draft) => {

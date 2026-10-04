@@ -8,6 +8,7 @@ import type { Edge, Node } from "@/types";
 import { RecordMapFacade } from "../facades";
 import { createInternalNodes, type NodeMeasurements } from "../projections/internalNodes";
 import { createLayoutedEdges } from "../projections/layoutedEdges";
+import { external } from "./externalStore";
 
 const makeNode = (id: string, x: number): Node => ({
   id,
@@ -53,18 +54,22 @@ describe("integration: layoutedEdges over chained internalNodes sub-stores", () 
   // subscriptions can never strand.
   it("edges appear after measurements even when a controlled reset replaced both arrays", () => {
     createRoot((dispose) => {
-      const [nodes, setNodes] = createStore<Node[]>([
-        makeNode("a", 0),
-        makeNode("b", 200),
-        makeNode("c", 400),
-        makeNode("d", 600),
-      ]);
-      const [measurements, setMeasurements] = createStore<NodeMeasurements>({});
-      const [edges, setEdges] = createStore<Edge[]>([
-        { id: "e1", source: "a", target: "b" },
-        { id: "e2", source: "b", target: "c" },
-        { id: "e3", source: "c", target: "d" },
-      ]);
+      const [nodes, setNodes] = external(
+        createStore<Node[]>([
+          makeNode("a", 0),
+          makeNode("b", 200),
+          makeNode("c", 400),
+          makeNode("d", 600),
+        ]),
+      );
+      const [measurements, setMeasurements] = external(createStore<NodeMeasurements>({}));
+      const [edges, setEdges] = external(
+        createStore<Edge[]>([
+          { id: "e1", source: "a", target: "b" },
+          { id: "e2", source: "b", target: "c" },
+          { id: "e3", source: "c", target: "d" },
+        ]),
+      );
 
       const internalNodes = createInternalNodes({
         selectionOverlay: {},

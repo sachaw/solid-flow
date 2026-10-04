@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { Node } from "@/types";
 
 import { createParentIds } from "../projections/parentIds";
+import { external } from "./externalStore";
 
 const makeNode = (id: string, parentId?: string): Node => ({
   id,
@@ -32,7 +33,9 @@ describe("createParentIds (core, headless)", () => {
   it("drops parent-ness when the last child is removed (stale-parent regression)", () => {
     // The old parentLookup ReactiveMap was populated by adoption and never
     // pruned: a node whose children were all removed stayed marked as parent.
-    const [nodes, setNodes] = createStore<Node[]>([makeNode("group"), makeNode("child", "group")]);
+    const [nodes, setNodes] = external(
+      createStore<Node[]>([makeNode("group"), makeNode("child", "group")]),
+    );
     let groupRuns = 0;
 
     createRoot((dispose) => {
@@ -60,11 +63,9 @@ describe("createParentIds (core, headless)", () => {
   });
 
   it("does not re-run a parent's subscriber for unrelated membership changes", () => {
-    const [nodes, setNodes] = createStore<Node[]>([
-      makeNode("g1"),
-      makeNode("c1", "g1"),
-      makeNode("g2"),
-    ]);
+    const [nodes, setNodes] = external(
+      createStore<Node[]>([makeNode("g1"), makeNode("c1", "g1"), makeNode("g2")]),
+    );
     let g1Runs = 0;
 
     createRoot((dispose) => {

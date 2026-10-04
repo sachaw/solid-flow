@@ -11,6 +11,7 @@ import {
   isManualZIndexMode,
   type NodeMeasurements,
 } from "../projections/internalNodes";
+import { external } from "./externalStore";
 
 // Headless core tests for the adoption projection: user nodes + the
 // measurements root derive into internal nodes without any DOM.
@@ -45,8 +46,8 @@ const setup = (
     zIndexMode: ZIndexMode;
   }>,
 ) => {
-  const [nodes, setNodes] = createStore<Node[]>(initialNodes);
-  const [measurements, setMeasurements] = createStore<NodeMeasurements>({});
+  const [nodes, setNodes] = external(createStore<Node[]>(initialNodes));
+  const [measurements, setMeasurements] = external(createStore<NodeMeasurements>({}));
 
   const internalNodes = createInternalNodes({
     selectionOverlay: {},
@@ -428,7 +429,11 @@ describe("createInternalNodes (core, headless)", () => {
         makeNode({ id: "a", position: { x: 100, y: 100 }, measured: { width: 50, height: 20 } }),
       ]);
       const [measurements] = createStore<NodeMeasurements>({});
-      const [config, setConfig] = createStore<{ nodeOrigin: NodeOrigin }>({ nodeOrigin: [0, 0] });
+      const [config, setConfig] = external(
+        createStore<{ nodeOrigin: NodeOrigin }>({
+          nodeOrigin: [0, 0],
+        }),
+      );
 
       const internalNodes = createInternalNodes({
         selectionOverlay: {},

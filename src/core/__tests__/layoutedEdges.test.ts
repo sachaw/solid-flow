@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { Edge, InternalNode, Node } from "@/types";
 
 import { createLayoutedEdges, type LayoutedEdgesSource } from "../projections/layoutedEdges";
+import { external } from "./externalStore";
 
 // Headless core test: the layout join runs entirely without a DOM. Internal
 // nodes are fed directly (simulating the adoption + measurement pipeline).
@@ -50,7 +51,7 @@ const internalNode = (id: string, x: number, y: number): InternalNode => ({
 });
 
 const makeSource = (edges: Edge[], nodes: InternalNode[]) => {
-  const [edgesStore, setEdgesStore] = createStore(edges);
+  const [edgesStore, setEdgesStore] = external(createStore(edges));
   const nodeLookup = new Map(nodes.map((n) => [n.id, n]));
 
   const source: LayoutedEdgesSource<Node, Edge> = {
@@ -212,9 +213,9 @@ describe("createLayoutedEdges (core, headless)", () => {
     // plugin-scale projections (e.g. minimap) stays gated on mounting the
     // plugin rather than relying on read-laziness.
     let edgesReads = 0;
-    const [edgesStore, setEdgesStore] = createStore([
-      { id: "e1", source: "a", target: "b" },
-    ] as Edge[]);
+    const [edgesStore, setEdgesStore] = external(
+      createStore([{ id: "e1", source: "a", target: "b" }] as Edge[]),
+    );
     const nodeLookup = new Map([
       ["a", internalNode("a", 0, 0)],
       ["b", internalNode("b", 200, 100)],
