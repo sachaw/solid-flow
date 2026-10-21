@@ -384,30 +384,21 @@ var SpatialGrid = class {
 	}
 	*keys() {
 		let candidates = this.#candidateIds();
-		if (!candidates) {
-			yield* this.#real.keys();
-			return;
-		}
-		for (let id of candidates) this.#real.has(id) && (yield id);
+		if (!candidates) yield* this.#real.keys();
+		else for (let id of candidates) this.#real.has(id) && (yield id);
 	}
 	*values() {
 		let candidates = this.#candidateIds();
-		if (!candidates) {
-			yield* this.#real.values();
-			return;
-		}
-		for (let id of candidates) {
+		if (!candidates) yield* this.#real.values();
+		else for (let id of candidates) {
 			let value = this.#real.get(id);
 			value !== void 0 && (yield value);
 		}
 	}
 	*entries() {
 		let candidates = this.#candidateIds();
-		if (!candidates) {
-			yield* this.#real.entries();
-			return;
-		}
-		for (let id of candidates) {
+		if (!candidates) yield* this.#real.entries();
+		else for (let id of candidates) {
 			let value = this.#real.get(id);
 			value !== void 0 && (yield [id, value]);
 		}
@@ -814,25 +805,17 @@ const A11yDescriptions = () => {
 		addSelectedEdges,
 		handleNodeSelection: (id, unselect, nodeRef) => {
 			let node = store.nodes.find((n) => n.id === id);
-			if (!node) {
-				emitFlowError(store.onError, "012", errorMessages.error012(id));
-				return;
-			}
-			setSelectionRect(void 0), setSelectionRectMode(void 0), nodeSelected(node) ? (unselect || nodeSelected(node) && store.multiselectionKeyPressed) && (unselectNodesAndEdges({
+			node ? (setSelectionRect(void 0), setSelectionRectMode(void 0), nodeSelected(node) ? (unselect || nodeSelected(node) && store.multiselectionKeyPressed) && (unselectNodesAndEdges({
 				nodes: [node],
 				edges: []
-			}), requestAnimationFrame(() => nodeRef?.blur())) : addSelectedNodes([id]);
+			}), requestAnimationFrame(() => nodeRef?.blur())) : addSelectedNodes([id])) : emitFlowError(store.onError, "012", errorMessages.error012(id));
 		},
 		handleEdgeSelection: (id) => {
 			let edge = edgeLookup[id];
-			if (!edge) {
-				emitFlowError(store.onError, "012", errorMessages.error012(id));
-				return;
-			}
-			isEdgeSelectable(edge, store) && (setSelectionRect(void 0), setSelectionRectMode(void 0), edgeSelected(edge) ? edgeSelected(edge) && store.multiselectionKeyPressed && unselectNodesAndEdges({
+			edge ? isEdgeSelectable(edge, store) && (setSelectionRect(void 0), setSelectionRectMode(void 0), edgeSelected(edge) ? edgeSelected(edge) && store.multiselectionKeyPressed && unselectNodesAndEdges({
 				nodes: [],
 				edges: [edge]
-			}) : addSelectedEdges([id]));
+			}) : addSelectedEdges([id])) : emitFlowError(store.onError, "012", errorMessages.error012(id));
 		},
 		moveSelectedNodes: (direction, factor) => {
 			let nodeUpdates = /* @__PURE__ */ new Map(), xVelo = store.snapGrid?.[0] ?? 5, yVelo = store.snapGrid?.[1] ?? 5, xDiff = direction.x * xVelo * factor, yDiff = direction.y * yVelo * factor;
@@ -3188,16 +3171,12 @@ const InitialNodeTypesMap = {
 	};
 	typeof requestIdleCallback == "function" ? requestIdleCallback(prime) : setTimeout(prime, 50);
 	let pendingEntries, requestUpdateNodeInternals = (updateEntries) => {
-		if (pendingEntries) {
-			pendingEntries.push(...updateEntries);
-			return;
-		}
-		pendingEntries = updateEntries, scheduleIdleCallback(() => {
+		pendingEntries ? pendingEntries.push(...updateEntries) : (pendingEntries = updateEntries, scheduleIdleCallback(() => {
 			let updates = new Map(pendingEntries);
 			pendingEntries = void 0;
 			let { updatedInternals, measurementWrites, changes, parentExpandChildren } = measureNodeInternals(updates, nodeLookup, store.domNode, store.nodeExtent);
 			updatedInternals && (actions.applyMeasurementWrites(measurementWrites), flush(), parentExpandChildren.length > 0 && changes.push(...handleExpandParent(parentExpandChildren, nodeLookup, (parentId) => store.nodes.filter((node) => node.parentId === parentId), store.nodeOrigin)), actions.applyNodeChanges(changes), flush(), actions.markInitialNodesMeasured());
-		});
+		}));
 	};
 	return actions.setMeasureRequester(requestUpdateNodeInternals), {
 		...state,
@@ -3550,13 +3529,7 @@ const isSetEqual = (a, b) => {
 		x: 0,
 		y: 0
 	}, autoPanStarted = !1, autoPanOnSelection = () => props.autoPanOnSelection ?? !0, paneClickDistance = () => props.paneClickDistance ?? 0, _panOnDrag = () => store.panActivationKeyPressed || props.panOnDrag, isSelecting = () => store.selectionKeyPressed || !!store.selectionRect || props.selectionOnDrag && _panOnDrag() !== !0, isSelectionEnabled = () => store.elementsSelectable && (isSelecting() || store.selectionRectMode === "user"), onClick = (event) => {
-		if (event.target === container) {
-			if (selectionInProgress || store.connection.inProgress || connectionEndedOnPane) {
-				selectionInProgress = !1, connectionEndedOnPane = !1;
-				return;
-			}
-			props.onPaneClick?.({ event }), actions.unselectNodesAndEdges(), actions.setSelectionRectMode(void 0), actions.setSelectionRect(void 0);
-		}
+		event.target === container && (selectionInProgress || store.connection.inProgress || connectionEndedOnPane ? (selectionInProgress = !1, connectionEndedOnPane = !1) : (props.onPaneClick?.({ event }), actions.unselectNodesAndEdges(), actions.setSelectionRectMode(void 0), actions.setSelectionRect(void 0)));
 	}, onPointerDownCapture = (event) => {
 		if (event.pointerType === "touch" && _panOnDrag() !== !1 && !store.selectionKeyPressed || (containerBounds = container?.getBoundingClientRect() ?? null, !containerBounds)) return;
 		let eventTargetIsContainer = event.target === container, isNoKeyEvent = !eventTargetIsContainer && !!event.target.closest(".nokey"), isSelectionActive = props.selectionOnDrag && eventTargetIsContainer || store.selectionKeyPressed;
@@ -3613,11 +3586,7 @@ const isSetEqual = (a, b) => {
 			x,
 			y
 		}).then((panned) => {
-			if (!selectionInProgress || !panned) {
-				autoPanId = requestAnimationFrame(autoPan);
-				return;
-			}
-			commitUserSelectionRect(position.x, position.y), autoPanId = requestAnimationFrame(autoPan);
+			!selectionInProgress || !panned || commitUserSelectionRect(position.x, position.y), autoPanId = requestAnimationFrame(autoPan);
 		});
 	}, cleanupAutoPan = () => {
 		autoPanId &&= (cancelAnimationFrame(autoPanId), 0), autoPanStarted = !1;
@@ -3643,11 +3612,7 @@ const isSetEqual = (a, b) => {
 		}
 		selectionInProgress = !0, autoPanStarted ||= (autoPan(), !0), commitUserSelectionRect(mousePos.x, mousePos.y);
 	}, onPointerUp = (event) => {
-		if (!isSelectionEnabled()) {
-			event.target === container && store.connection.inProgress && (connectionEndedOnPane = !0);
-			return;
-		}
-		event.button === 0 && (event.target?.releasePointerCapture?.(event.pointerId), !selectionInProgress && event.target === container && onClick(event), actions.setSelectionRect(void 0), selectionInProgress && actions.setSelectionRectMode(selectedNodeIds.size > 0 ? "nodes" : void 0), flush(), selectionInProgress && props.onSelectionEnd?.(event), cleanupAutoPan());
+		isSelectionEnabled() ? event.button === 0 && (event.target?.releasePointerCapture?.(event.pointerId), !selectionInProgress && event.target === container && onClick(event), actions.setSelectionRect(void 0), selectionInProgress && actions.setSelectionRectMode(selectedNodeIds.size > 0 ? "nodes" : void 0), flush(), selectionInProgress && props.onSelectionEnd?.(event), cleanupAutoPan()) : event.target === container && store.connection.inProgress && (connectionEndedOnPane = !0);
 	}, onPointerCancel = (event) => {
 		event.target?.releasePointerCapture?.(event.pointerId), cleanupAutoPan();
 	}, onClickCapture = (event) => {
@@ -3661,11 +3626,7 @@ const isSetEqual = (a, b) => {
 	let onContextMenu = (event) => {
 		if (event.target !== container) return;
 		let result = _panOnDrag();
-		if (Array.isArray(result) && result.includes(2)) {
-			event.preventDefault();
-			return;
-		}
-		props.onPaneContextMenu?.({ event });
+		Array.isArray(result) && result.includes(2) ? event.preventDefault() : props.onPaneContextMenu?.({ event });
 	};
 	var _el$ = _tmpl$$21();
 	return _el$._$$contextmenu = onContextMenu, _el$.addEventListener("pointercancel", (e) => isSelectionEnabled() ? onPointerCancel(e) : void 0), _el$._$$pointerup = onPointerUp, _el$._$$pointermove = (e) => {
