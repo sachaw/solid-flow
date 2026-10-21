@@ -1,5 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { Dynamic } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
 import {
   getBoundsOfRects,
   getInternalNodesBounds,
@@ -144,6 +144,7 @@ export const MiniMap = <NodeType extends Node>(
 
   const nodeStrokeColorFunc = () => getAttrFunction(_props.nodeStrokeColor);
   const nodeClassFunc = () => getAttrFunction(_props.nodeClass);
+  const NodeComponent = dynamic(() => _props.nodeComponent ?? MiniMapNode);
 
   const shapeRendering =
     // @ts-expect-error - TS doesn't know about chrome
@@ -346,8 +347,7 @@ export const MiniMap = <NodeType extends Node>(
                         // parity), not the internal row.
                         const userNode = () => node().internals.userNode;
                         return (
-                          <Dynamic
-                            component={_props.nodeComponent ?? MiniMapNode}
+                          <NodeComponent
                             id={nodeId()}
                             x={node().internals.positionAbsolute.x}
                             y={node().internals.positionAbsolute.y}

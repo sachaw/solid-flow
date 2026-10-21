@@ -1,6 +1,6 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import type { JSX } from "@solidjs/web";
-import { Dynamic } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
 import {
   elementSelectionKeys,
   errorMessages,
@@ -63,6 +63,7 @@ export const NodeWrapper = <NodeType extends Node = Node>(
   // Upstream parity (error003): unknown types render the default component
   // instead of nothing.
   const nodeComponent = () => store.nodeTypes[nodeTypeValid() ? nodeType() : "default"];
+  const NodeComponent = dynamic(nodeComponent);
   const isParentNode = () => !!parentIds[node().id];
 
   const transform = () => {
@@ -293,8 +294,7 @@ export const NodeWrapper = <NodeType extends Node = Node>(
       >
         <NodeIdContext value={nodeId}>
           <NodeConnectableContext value={connectable}>
-            <Dynamic
-              component={nodeComponent()}
+            <NodeComponent
               data={node().data}
               id={node().id}
               selected={Boolean(node().selected)}

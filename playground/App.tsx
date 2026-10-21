@@ -1,7 +1,7 @@
 import "@/styles/style.css";
 
 import { Errored } from "solid-js";
-import { Dynamic } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
 
 import { SolidFlowProvider } from "@/index";
 
@@ -25,11 +25,12 @@ export const App = () => {
 const AppContent = () => {
   const [example] = useExampleParam();
   const exampleKey = () => (example() as keyof typeof SolidFlowExamplesMap) || "Overview";
+  const Example = dynamic(() => SolidFlowExamplesMap[exampleKey()]);
 
   return (
     <div style={{ display: "flex", "flex-direction": "column", width: "100vw", height: "100vh" }}>
       <AppStateBar />
-      <Dynamic component={SolidFlowExamplesMap[exampleKey()]} />
+      <Example />
     </div>
   );
 };

@@ -11,7 +11,6 @@ const SOLID_BUILT_INS = [
   "Repeat",
   "Reveal",
   "Portal",
-  "Dynamic",
 ];
 
 /**

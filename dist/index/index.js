@@ -1,4 +1,4 @@
-import { Dynamic, Portal, addEvent, claimElement, className, createComponent, delegateEvents, effect, insert, isServer, memo, mergeProps, readShallow, ref, setAttribute, setStyleProperty, spread, style, template } from "@solidjs/web";
+import { Portal, addEvent, claimElement, className, createComponent, delegateEvents, dynamic, effect, insert, isServer, memo, mergeProps, readShallow, ref, setAttribute, setStyleProperty, spread, style, template } from "@solidjs/web";
 import { ConnectionLineType as ConnectionLineType$1, ConnectionMode as ConnectionMode$1, MarkerType as MarkerType$1, PanOnScrollMode as PanOnScrollMode$1, Position as Position$1, ResizeControlVariant as ResizeControlVariant$1, SelectionMode as SelectionMode$1, XYDrag, XYHandle, XYMinimap, XYPanZoom, XYResizer, XY_RESIZER_HANDLE_POSITIONS, XY_RESIZER_LINE_POSITIONS, addEdge, addEdge as addEdge$1, areConnectionMapsEqual, calcAutoPan, calculateNodePosition, clampPosition, clampPositionToParent, createDevWarn, createMarkerIds, elementSelectionKeys, errorMessages, evaluateAbsolutePosition, fitViewport, getBezierEdgeCenter as getBezierEdgeCenter$1, getBezierPath, getBezierPath as getBezierPath$1, getBoundsOfRects, getConnectedEdges, getConnectionStatus, getDimensions, getEdgeCenter as getEdgeCenter$1, getEdgePosition, getEdgeToolbarTransform, getElementsToRemove, getElevatedEdgeZIndex, getEventPosition, getHandleBounds, getHostForElement, getIncomers, getInternalNodesBounds, getMarkerId, getNodeDimensions, getNodePositionWithOrigin, getNodeToolbarTransform, getNodesBounds, getNodesBounds as getNodesBounds$1, getNodesInside, getOutgoers, getOverlappingArea, getSmoothStepPath, getSmoothStepPath as getSmoothStepPath$1, getStraightPath, getStraightPath as getStraightPath$1, getViewportForBounds, getViewportForBounds as getViewportForBounds$1, handleConnectionChange, infiniteExtent, initialConnection, isCoordinateExtent, isEdgeBase, isInputDOMNode, isMacOs, isNodeBase, isNumeric, isRectObject, mergeAriaLabelConfig, nodeHasDimensions, nodeToRect, panBy, pointToRendererPoint, rendererPointToPoint, shallowNodeData, snapPosition } from "@xyflow/system";
 import { For, Show, createContext, createEffect, createMemo, createOptimisticStore, createProjection, createSignal, createStore, flush, isPending, mapArray, merge, omit, onCleanup, onSettled, runWithOwner, snapshot, untrack, useContext } from "solid-js";
 import { createMediaQuery } from "@solid-primitives/media";
@@ -384,21 +384,30 @@ var SpatialGrid = class {
 	}
 	*keys() {
 		let candidates = this.#candidateIds();
-		if (!candidates) yield* this.#real.keys();
-		else for (let id of candidates) this.#real.has(id) && (yield id);
+		if (!candidates) {
+			yield* this.#real.keys();
+			return;
+		}
+		for (let id of candidates) this.#real.has(id) && (yield id);
 	}
 	*values() {
 		let candidates = this.#candidateIds();
-		if (!candidates) yield* this.#real.values();
-		else for (let id of candidates) {
+		if (!candidates) {
+			yield* this.#real.values();
+			return;
+		}
+		for (let id of candidates) {
 			let value = this.#real.get(id);
 			value !== void 0 && (yield value);
 		}
 	}
 	*entries() {
 		let candidates = this.#candidateIds();
-		if (!candidates) yield* this.#real.entries();
-		else for (let id of candidates) {
+		if (!candidates) {
+			yield* this.#real.entries();
+			return;
+		}
+		for (let id of candidates) {
 			let value = this.#real.get(id);
 			value !== void 0 && (yield [id, value]);
 		}
@@ -805,17 +814,25 @@ const A11yDescriptions = () => {
 		addSelectedEdges,
 		handleNodeSelection: (id, unselect, nodeRef) => {
 			let node = store.nodes.find((n) => n.id === id);
-			node ? (setSelectionRect(void 0), setSelectionRectMode(void 0), nodeSelected(node) ? (unselect || nodeSelected(node) && store.multiselectionKeyPressed) && (unselectNodesAndEdges({
+			if (!node) {
+				emitFlowError(store.onError, "012", errorMessages.error012(id));
+				return;
+			}
+			setSelectionRect(void 0), setSelectionRectMode(void 0), nodeSelected(node) ? (unselect || nodeSelected(node) && store.multiselectionKeyPressed) && (unselectNodesAndEdges({
 				nodes: [node],
 				edges: []
-			}), requestAnimationFrame(() => nodeRef?.blur())) : addSelectedNodes([id])) : emitFlowError(store.onError, "012", errorMessages.error012(id));
+			}), requestAnimationFrame(() => nodeRef?.blur())) : addSelectedNodes([id]);
 		},
 		handleEdgeSelection: (id) => {
 			let edge = edgeLookup[id];
-			edge ? isEdgeSelectable(edge, store) && (setSelectionRect(void 0), setSelectionRectMode(void 0), edgeSelected(edge) ? edgeSelected(edge) && store.multiselectionKeyPressed && unselectNodesAndEdges({
+			if (!edge) {
+				emitFlowError(store.onError, "012", errorMessages.error012(id));
+				return;
+			}
+			isEdgeSelectable(edge, store) && (setSelectionRect(void 0), setSelectionRectMode(void 0), edgeSelected(edge) ? edgeSelected(edge) && store.multiselectionKeyPressed && unselectNodesAndEdges({
 				nodes: [],
 				edges: [edge]
-			}) : addSelectedEdges([id])) : emitFlowError(store.onError, "012", errorMessages.error012(id));
+			}) : addSelectedEdges([id]));
 		},
 		moveSelectedNodes: (direction, factor) => {
 			let nodeUpdates = /* @__PURE__ */ new Map(), xVelo = store.snapGrid?.[0] ?? 5, yVelo = store.snapGrid?.[1] ?? 5, xDiff = direction.x * xVelo * factor, yDiff = direction.y * yVelo * factor;
@@ -2074,7 +2091,7 @@ const EdgeWrapper = (props) => {
 	}), edgeLabelStyle = createMemo(() => {
 		let s = edge().labelStyle;
 		return s ? { ...s } : void 0;
-	}), selectable = () => isEdgeSelectable(edge(), store), focusable = () => edge().focusable ?? store.edgesFocusable, edgeTypeValid = () => edgeType() in store.edgeTypes, edgeComponent = () => store.edgeTypes[edgeTypeValid() ? edgeType() : "default"];
+	}), selectable = () => isEdgeSelectable(edge(), store), focusable = () => edge().focusable ?? store.edgesFocusable, edgeTypeValid = () => edgeType() in store.edgeTypes, EdgeComponent = dynamic(() => store.edgeTypes[edgeTypeValid() ? edgeType() : "default"]);
 	createEffect(() => ({
 		valid: edgeTypeValid(),
 		edgeType: edgeType()
@@ -2152,10 +2169,7 @@ const EdgeWrapper = (props) => {
 						onPointerMove
 					}, () => edge().domAttributes], !0), ref(() => (el) => {
 						edgeRef = el, setEdgeEl(el);
-					}, _el$2), insert(_el$2, createComponent(Dynamic, {
-						get component() {
-							return edgeComponent();
-						},
+					}, _el$2), insert(_el$2, createComponent(EdgeComponent, {
 						get id() {
 							return edge().id;
 						},
@@ -2800,7 +2814,7 @@ const NodeWrapper = (props) => {
 		let el = nodeRef();
 		el && props.resizeObserver?.unobserve(el);
 	});
-	let nodeId = () => node().id, nodeType = () => node().type ?? "default", deletable = () => node().deletable ?? !0, selectable = () => node().selectable ?? store.elementsSelectable, focusable = () => node().focusable ?? store.nodesFocusable, draggable = () => node().draggable ?? store.nodesDraggable, connectable = () => node().connectable ?? store.nodesConnectable, userNode = () => node().internals.userNode, nodeTypeValid = () => nodeType() in store.nodeTypes, nodeComponent = () => store.nodeTypes[nodeTypeValid() ? nodeType() : "default"], isParentNode = () => !!parentIds[node().id], transform = () => {
+	let nodeId = () => node().id, nodeType = () => node().type ?? "default", deletable = () => node().deletable ?? !0, selectable = () => node().selectable ?? store.elementsSelectable, focusable = () => node().focusable ?? store.nodesFocusable, draggable = () => node().draggable ?? store.nodesDraggable, connectable = () => node().connectable ?? store.nodesConnectable, userNode = () => node().internals.userNode, nodeTypeValid = () => nodeType() in store.nodeTypes, NodeComponent = dynamic(() => store.nodeTypes[nodeTypeValid() ? nodeType() : "default"]), isParentNode = () => !!parentIds[node().id], transform = () => {
 		let { x, y } = node().internals.positionAbsolute;
 		return `translate(${x}px, ${y}px)`;
 	}, sizeStyle = () => {
@@ -2965,10 +2979,7 @@ const NodeWrapper = (props) => {
 					return createComponent(NodeConnectableContext, {
 						value: connectable,
 						get children() {
-							return createComponent(Dynamic, {
-								get component() {
-									return nodeComponent();
-								},
+							return createComponent(NodeComponent, {
 								get data() {
 									return node().data;
 								},
@@ -3171,12 +3182,16 @@ const InitialNodeTypesMap = {
 	};
 	typeof requestIdleCallback == "function" ? requestIdleCallback(prime) : setTimeout(prime, 50);
 	let pendingEntries, requestUpdateNodeInternals = (updateEntries) => {
-		pendingEntries ? pendingEntries.push(...updateEntries) : (pendingEntries = updateEntries, scheduleIdleCallback(() => {
+		if (pendingEntries) {
+			pendingEntries.push(...updateEntries);
+			return;
+		}
+		pendingEntries = updateEntries, scheduleIdleCallback(() => {
 			let updates = new Map(pendingEntries);
 			pendingEntries = void 0;
 			let { updatedInternals, measurementWrites, changes, parentExpandChildren } = measureNodeInternals(updates, nodeLookup, store.domNode, store.nodeExtent);
 			updatedInternals && (actions.applyMeasurementWrites(measurementWrites), flush(), parentExpandChildren.length > 0 && changes.push(...handleExpandParent(parentExpandChildren, nodeLookup, (parentId) => store.nodes.filter((node) => node.parentId === parentId), store.nodeOrigin)), actions.applyNodeChanges(changes), flush(), actions.markInitialNodesMeasured());
-		}));
+		});
 	};
 	return actions.setMeasureRequester(requestUpdateNodeInternals), {
 		...state,
@@ -3529,7 +3544,13 @@ const isSetEqual = (a, b) => {
 		x: 0,
 		y: 0
 	}, autoPanStarted = !1, autoPanOnSelection = () => props.autoPanOnSelection ?? !0, paneClickDistance = () => props.paneClickDistance ?? 0, _panOnDrag = () => store.panActivationKeyPressed || props.panOnDrag, isSelecting = () => store.selectionKeyPressed || !!store.selectionRect || props.selectionOnDrag && _panOnDrag() !== !0, isSelectionEnabled = () => store.elementsSelectable && (isSelecting() || store.selectionRectMode === "user"), onClick = (event) => {
-		event.target === container && (selectionInProgress || store.connection.inProgress || connectionEndedOnPane ? (selectionInProgress = !1, connectionEndedOnPane = !1) : (props.onPaneClick?.({ event }), actions.unselectNodesAndEdges(), actions.setSelectionRectMode(void 0), actions.setSelectionRect(void 0)));
+		if (event.target === container) {
+			if (selectionInProgress || store.connection.inProgress || connectionEndedOnPane) {
+				selectionInProgress = !1, connectionEndedOnPane = !1;
+				return;
+			}
+			props.onPaneClick?.({ event }), actions.unselectNodesAndEdges(), actions.setSelectionRectMode(void 0), actions.setSelectionRect(void 0);
+		}
 	}, onPointerDownCapture = (event) => {
 		if (event.pointerType === "touch" && _panOnDrag() !== !1 && !store.selectionKeyPressed || (containerBounds = container?.getBoundingClientRect() ?? null, !containerBounds)) return;
 		let eventTargetIsContainer = event.target === container, isNoKeyEvent = !eventTargetIsContainer && !!event.target.closest(".nokey"), isSelectionActive = props.selectionOnDrag && eventTargetIsContainer || store.selectionKeyPressed;
@@ -3586,7 +3607,11 @@ const isSetEqual = (a, b) => {
 			x,
 			y
 		}).then((panned) => {
-			!selectionInProgress || !panned || commitUserSelectionRect(position.x, position.y), autoPanId = requestAnimationFrame(autoPan);
+			if (!selectionInProgress || !panned) {
+				autoPanId = requestAnimationFrame(autoPan);
+				return;
+			}
+			commitUserSelectionRect(position.x, position.y), autoPanId = requestAnimationFrame(autoPan);
 		});
 	}, cleanupAutoPan = () => {
 		autoPanId &&= (cancelAnimationFrame(autoPanId), 0), autoPanStarted = !1;
@@ -3612,7 +3637,11 @@ const isSetEqual = (a, b) => {
 		}
 		selectionInProgress = !0, autoPanStarted ||= (autoPan(), !0), commitUserSelectionRect(mousePos.x, mousePos.y);
 	}, onPointerUp = (event) => {
-		isSelectionEnabled() ? event.button === 0 && (event.target?.releasePointerCapture?.(event.pointerId), !selectionInProgress && event.target === container && onClick(event), actions.setSelectionRect(void 0), selectionInProgress && actions.setSelectionRectMode(selectedNodeIds.size > 0 ? "nodes" : void 0), flush(), selectionInProgress && props.onSelectionEnd?.(event), cleanupAutoPan()) : event.target === container && store.connection.inProgress && (connectionEndedOnPane = !0);
+		if (!isSelectionEnabled()) {
+			event.target === container && store.connection.inProgress && (connectionEndedOnPane = !0);
+			return;
+		}
+		event.button === 0 && (event.target?.releasePointerCapture?.(event.pointerId), !selectionInProgress && event.target === container && onClick(event), actions.setSelectionRect(void 0), selectionInProgress && actions.setSelectionRectMode(selectedNodeIds.size > 0 ? "nodes" : void 0), flush(), selectionInProgress && props.onSelectionEnd?.(event), cleanupAutoPan());
 	}, onPointerCancel = (event) => {
 		event.target?.releasePointerCapture?.(event.pointerId), cleanupAutoPan();
 	}, onClickCapture = (event) => {
@@ -3626,7 +3655,11 @@ const isSetEqual = (a, b) => {
 	let onContextMenu = (event) => {
 		if (event.target !== container) return;
 		let result = _panOnDrag();
-		Array.isArray(result) && result.includes(2) ? event.preventDefault() : props.onPaneContextMenu?.({ event });
+		if (Array.isArray(result) && result.includes(2)) {
+			event.preventDefault();
+			return;
+		}
+		props.onPaneContextMenu?.({ event });
 	};
 	var _el$ = _tmpl$$21();
 	return _el$._$$contextmenu = onContextMenu, _el$.addEventListener("pointercancel", (e) => isSelectionEnabled() ? onPointerCancel(e) : void 0), _el$._$$pointerup = onPointerUp, _el$._$$pointermove = (e) => {
@@ -4903,7 +4936,7 @@ const getAttrFunction = (value) => value instanceof Function ? value : () => val
 		offsetScale: 5,
 		nodeStrokeWidth: 2,
 		style: {}
-	}), paneProps = omit(_props, "class", "style", "position", "nodeClass", "nodeStrokeColor", "nodeColor", "pannable", "zoomable", "inversePan", "zoomStep", "offsetScale", "bgColor", "width", "height", "maskColor", "maskStrokeColor", "maskStrokeWidth", "nodeBorderRadius", "nodeStrokeWidth", "nodeComponent", "onClick", "onNodeClick"), nodeColorFunc = () => _props.nodeColor === void 0 ? void 0 : getAttrFunction(_props.nodeColor), nodeStrokeColorFunc = () => getAttrFunction(_props.nodeStrokeColor), nodeClassFunc = () => getAttrFunction(_props.nodeClass), shapeRendering = typeof window > "u" || window.chrome ? "crispEdges" : "geometricPrecision", labelledBy = createMemo(() => `solid-flow__minimap-desc-${store.id}`), viewBB = createMemo(() => ({
+	}), paneProps = omit(_props, "class", "style", "position", "nodeClass", "nodeStrokeColor", "nodeColor", "pannable", "zoomable", "inversePan", "zoomStep", "offsetScale", "bgColor", "width", "height", "maskColor", "maskStrokeColor", "maskStrokeWidth", "nodeBorderRadius", "nodeStrokeWidth", "nodeComponent", "onClick", "onNodeClick"), nodeColorFunc = () => _props.nodeColor === void 0 ? void 0 : getAttrFunction(_props.nodeColor), nodeStrokeColorFunc = () => getAttrFunction(_props.nodeStrokeColor), nodeClassFunc = () => getAttrFunction(_props.nodeClass), NodeComponent = dynamic(() => _props.nodeComponent ?? MiniMapNode), shapeRendering = typeof window > "u" || window.chrome ? "crispEdges" : "geometricPrecision", labelledBy = createMemo(() => `solid-flow__minimap-desc-${store.id}`), viewBB = createMemo(() => ({
 		x: -store.viewport.x / store.viewport.zoom,
 		y: -store.viewport.y / store.viewport.zoom,
 		width: store.width / store.viewport.zoom,
@@ -5018,10 +5051,7 @@ const getAttrFunction = (value) => value instanceof Function ? value : () => val
 							},
 							children: (node) => {
 								let dimensions = () => getNodeDimensions(node()), userNode = () => node().internals.userNode;
-								return createComponent(Dynamic, {
-									get component() {
-										return _props.nodeComponent ?? MiniMapNode;
-									},
+								return createComponent(NodeComponent, {
 									get id() {
 										return nodeId();
 									},

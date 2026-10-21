@@ -1,6 +1,6 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import type { JSX } from "@solidjs/web";
-import { Dynamic } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
 import { elementSelectionKeys, errorMessages, getMarkerId } from "@xyflow/system";
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
 
@@ -55,6 +55,7 @@ export const EdgeWrapper = <NodeType extends Node = Node, EdgeType extends Edge 
   // instead of nothing, and report through the error channel (mirrors
   // NodeWrapper's error003 effect).
   const edgeComponent = () => store.edgeTypes[edgeTypeValid() ? edgeType() : "default"];
+  const EdgeComponent = dynamic(edgeComponent);
 
   createEffect(
     () => ({ valid: edgeTypeValid(), edgeType: edgeType() }),
@@ -155,8 +156,7 @@ export const EdgeWrapper = <NodeType extends Node = Node, EdgeType extends Edge 
             onPointerMove={onPointerMove}
             {...edge().domAttributes}
           >
-            <Dynamic
-              component={edgeComponent()}
+            <EdgeComponent
               id={edge().id}
               source={edge().source}
               target={edge().target}
